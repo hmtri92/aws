@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  AppName:
+    Type: String
+    Default: Party
+
+Resources:
+  PartyBackend:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./backend/backend.yml
+      Parameters:
+        AppName: !Ref AppName

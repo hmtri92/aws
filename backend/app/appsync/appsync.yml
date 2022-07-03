@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  AppnNme:
+    Type: String
+  RoleAppSyncCloudWatchArn:
+    Type: String
+  RoleAppSyncDynamoDBArn:
+    Type: String
+  DynamoDBTable:
+    Type: String
+  APIKeyExpiration:
+    Type: Number
+    Default: "43200"
+
+Resources:
+  GraphQLApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: !Sub ${Appname}_GraphQLApi
+      AuthenticationType: API_KEY
+      LogConfig:
+        CloudWatchLogsRoleArn: !Ref RoleAppSyncCloudWatchArn
+        ExcludeVerboseContent: FALSE
+        FieldLogLevel: ALL
+
+  GraphQLApiSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      DefinitionS3Location: ./schemas.graphql
+
+  GraphQLDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: ${Appname}_DataSource
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt RoleAppSyncDynamoDBArn
+      DynamoDBConfig: 
+        TableName: !Ref DynamoDBTable
+        AwsRegion: !Sub ${AWS::Region}
+  
+  AppSyncAPIKey:
+      Type: AWS::AppSync::ApiKey
+      Properties:
+        ApiId: !GetAtt GraphQLApi.ApiId
+        Expires: 43200
+
+  Resolvers:
+    Type:  AWS::Serverless::Application
+    DependsOn: 
+      - GraphQLApiSchema
+      - GraphQLDataSource
+    Properties:
+      Location: ./resolvers.yml
+      Parameters:
+        ApiId: !GetAtt GraphQLApi.ApiId
+        DataSourceName: !GetAtt  GraphQLDataSource.Name
+
+Outputs:
+  APIKey:
+    Description: API Key
+    Value: !GetAtt AppSyncAPIKey.ApiKey
+
+  GraphQLUrl:
+    Description: GraphQL URL
+    Value: !GetAtt GraphQLApi.GraphQLUrl

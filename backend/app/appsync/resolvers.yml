@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ApiId:
+    Type: String
+  DataSourceName:
+    Type: String
+
+Resources:
+  AppSyncResolverReadParty:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: readData
+      DataSourceName: !Ref DataSourceName
+      RequestMappingTemplateS3Location: ./resolvers/Query.party.req.vtl
+      ResponseMappingTemplateS3Location: ./resolvers/Query.result.res.vtl

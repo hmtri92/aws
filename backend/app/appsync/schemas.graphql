@@ -1,0 +1,54 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Party {
+  pk: ID!
+  sk: String!
+  name: String
+  rounds: [Round]
+  total: String
+  createAt: AWSDate!
+}
+
+type Round {
+  pk: ID!
+  sk: String!
+  name: String
+  date: AWSDate
+  total: String!
+  participants: [Participant]
+  owner: Participant!
+  createAt: AWSDate
+}
+
+type Participant {
+  pk: ID!
+  sk: String!
+  user: User
+  total: String
+  status: String
+}
+
+type User {
+  pk: ID!
+  sk: String!
+  name: String
+  createAt: AWSDate
+}
+
+input writePartyInput {
+  pk: ID!
+  sk: String!
+  name: String
+  rounds: [AWSJSON]
+}
+
+type Query {
+
+}
+
+type Muation {
+  writeParty(input: writePartyInput!): Party
+}
